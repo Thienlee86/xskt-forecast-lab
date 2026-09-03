@@ -1,7 +1,7 @@
 export const SOURCE_URL="https://raw.githubusercontent.com/Thienlee86/du-bao-xsmn/main/data/xsmn_seed.json";
 export const PRIZE_SCHEMA={db:{count:1,digits:6},g1:{count:1,digits:5},g2:{count:1,digits:5},g3:{count:2,digits:5},g4:{count:7,digits:5},g5:{count:1,digits:4},g6:{count:3,digits:4},g7:{count:1,digits:3},g8:{count:1,digits:2}};
 const arr=x=>Array.isArray(x)?x:[x];
-function normalizePrizes(raw){const out={};for(const[k,s]of Object.entries(PRIZE_SCHEMA)){const values=arr(raw?.[k]).map(x=>String(x??"").padStart(s.digits,"0"));if(values.length!==s.count||values.some(x=>!new RegExp("^\\d{"+s.digits+"}$").test(x)))return null;out[k]=values}return out}
+function normalizePrizes(raw){const out={};for(const[k,s]of Object.entries(PRIZE_SCHEMA)){const source=arr(raw?.[k]);if(source.length!==s.count||source.some(x=>x===null||x===undefined||String(x).trim()===""))return null;const values=source.map(x=>String(x).trim().padStart(s.digits,"0"));if(values.some(x=>!new RegExp("^\\d{"+s.digits+"}$").test(x)))return null;out[k]=values}return out}
 export function boardNumbers(draw,{includeDb=true}={}){return Object.entries(draw.prizes).filter(([k])=>includeDb||k!=="db").flatMap(([,v])=>v)}
 export function boardTails(draw,{includeDb=true}={}){return boardNumbers(draw,{includeDb}).map(x=>x.slice(-2))}
 export async function loadData(){const r=await fetch(SOURCE_URL,{cache:"no-store"});if(!r.ok)throw new Error("Không tải được dữ liệu nguồn");return normalize(await r.json())}
