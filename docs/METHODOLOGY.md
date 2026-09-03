@@ -1,53 +1,44 @@
-# Phương pháp V1
+# Phương pháp dự báo và kiểm định
 
-## Bài toán
+## Mô hình 2 số cuối
 
-V1 xếp hạng 100 giá trị hai chữ số cuối giải đặc biệt cho từng tỉnh XSMN. Điểm hiển thị là điểm xếp hạng chuẩn hóa, không được diễn giải như xác suất trúng đã hiệu chỉnh.
+Ensemble đối chứng kết hợp tần suất có làm trơn, trọng số thời gian, chuyển tiếp bậc một và phân bố chữ số. Điểm là điểm xếp hạng chuẩn hóa, không phải cam kết xác suất trúng.
 
-## Thành phần mô hình
+## Mô hình phân cấp 6 số
 
-Ensemble V1 kết hợp:
+Giải đặc biệt được biểu diễn là `ABCDEF`. V1.1 kết hợp:
 
-- 30% tần suất có Laplace smoothing.
-- 30% tần suất có trọng số giảm dần theo thời gian.
-- 15% chuyển tiếp bậc một từ kết quả gần nhất.
-- 25% mô hình độc lập chữ số hàng chục và hàng đơn vị.
+- Sáu phân bố theo vị trí `A…F`.
+- Năm cặp liền nhau `AB, BC, CD, DE, EF`.
+- Bốn bộ ba liền nhau `ABC, BCD, CDE, DEF`.
+- Phân bố tổng sáu chữ số.
+- Beam search từ các chữ số dẫn đầu ở từng vị trí.
 
-Các trọng số này là cấu hình khởi đầu, chưa phải kết quả tối ưu. Chỉ thay đổi sau nested walk-forward validation.
+Tần suất cặp và bộ ba dùng additive smoothing. Mô hình áp dụng backoff về phân bố từng vị trí khi mẫu kết hợp chưa đủ dữ liệu. Không dùng tần suất thô của toàn bộ số 6 chữ số vì không gian có 1.000.000 khả năng trong khi số kỳ quan sát nhỏ.
 
-## Backtest
+## Walk-forward backtest
 
-Với kỳ kiểm tra tại chỉ số `i`, tập huấn luyện bắt buộc là `[0, i)`. Kết quả tại `i` không được tham gia tạo đặc trưng hoặc chọn tham số.
+Khi kiểm tra kỳ `i`, mọi đặc trưng chỉ được xây dựng từ `[0,i)`. Kết quả kỳ `i` không được dùng để chọn ứng viên, trọng số hoặc cửa sổ.
 
-Báo cáo ba mô hình:
+### Chỉ số 6 số
 
-1. Ensemble.
-2. Baseline tần suất.
-3. Baseline ngẫu nhiên có seed xác định để tái lập.
+- Exact@10 và Exact@50.
+- Tỷ lệ chữ số đúng vị trí.
+- Tỷ lệ đúng ít nhất 3/6 vị trí.
+- Tỷ lệ cặp thật `AB/CD/EF` xuất hiện trong Top 10.
+- Kết quả phải được đọc cùng cỡ mẫu.
 
-## Chỉ số
+### Chỉ số 2 số
 
-- Hit@1/5/10: kết quả thật nằm trong K vị trí đầu.
-- MRR: nghịch đảo thứ hạng trung bình.
-- Brier score đa lớp: độ sai lệch của toàn bộ phân phối; thấp hơn tốt hơn.
-
-Cần bổ sung khoảng tin cậy bootstrap và kiểm định chênh lệch ghép cặp khi đã có đủ dữ liệu.
+- Hit@1/5/10.
+- MRR.
+- Brier score đa lớp.
+- So sánh ensemble với baseline tần suất và ngẫu nhiên.
 
 ## Quy tắc nâng mô hình
 
-Một challenger chỉ được đề nghị thay champion khi:
+Challenger chỉ được nâng thành champion khi vượt baseline ngoài mẫu, cải thiện trên nhiều tỉnh/giai đoạn, không làm xấu chỉ số hiệu chỉnh nghiêm trọng, đủ cỡ mẫu và tái lập được từ version dữ liệu + cấu hình.
 
-- Vượt baseline trên dữ liệu ngoài mẫu.
-- Cải thiện không chỉ tập trung ở một tỉnh hoặc một giai đoạn ngắn.
-- Không suy giảm mạnh Brier score.
-- Số kỳ kiểm tra đạt ngưỡng định trước.
-- Cấu hình, dữ liệu đầu vào và kết quả có thể tái lập.
+## Lưu ý
 
-## Lộ trình tiếp theo
-
-- Snapshot dữ liệu độc lập trong repo mới.
-- Schema validation và data-quality report.
-- Nested walk-forward để chọn cửa sổ/trọng số.
-- Bootstrap confidence intervals theo tỉnh.
-- Calibration curve và reliability diagram.
-- Champion–challenger registry và drift monitor.
+Các trọng số V1.1 là cấu hình khởi đầu. Việc tối ưu tiếp theo phải dùng nested walk-forward validation; không chọn trọng số bằng chính tập kỳ dùng để báo cáo thành tích.
