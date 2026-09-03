@@ -1,4 +1,4 @@
-import{predictOtherPrizes,predictOtherPrizesChallenger,PRIZE_TIERS}from"./model-prizes.js?v=3";
+import{predictOtherPrizes,predictOtherPrizesChallenger,predictOtherPrizesEnsemble,PRIZE_TIERS}from"./model-prizes.js?v=3";
 const wait=()=>new Promise(r=>setTimeout(r,0));
 function bestPosition(number,actual){let best=0;for(const a of actual){let hit=0;for(let i=0;i<number.length;i++)if(number[i]===a[i])hit++;best=Math.max(best,hit)}return best}
 function choose(n,k){let v=1;for(let i=1;i<=k;i++)v=v*(n-k+i)/i;return v}
@@ -33,4 +33,13 @@ export async function backtestDrift(draws,{recentSize=20,referenceSize=30,window
  const old=finishComparison(reference),now=finishComparison(recent),delta={exactRate:now.exactRate-old.exactRate,tail2Rate:now.tail2Rate-old.tail2Rate,positionAccuracy:now.positionAccuracy-old.positionAccuracy};
  const tailDrop=delta.tail2Rate<=-.015,positionDrop=delta.positionAccuracy<=-.01,status=tailDrop&&positionDrop?"Cảnh báo suy giảm":tailDrop||positionDrop?"Cần theo dõi":"Ổn định";
  return{referenceSize,recentSize,reference:old,recent:now,delta,status};
+}
+
+function adaptiveWeight(delta){const advantage=delta.exactRate+delta.tail2Rate+delta.positionAccuracy;return advantage>.005?.35:advantage<-.005?.65:.5}
+export async function backtestEnsembleHoldout(draws,{calibrationSize=30,evaluationSize=20,window=50,onProgress}={}){
+ const needed=10+calibrationSize+evaluationSize;if(!Array.isArray(draws)||draws.length<needed)throw new Error("Cần ít nhất "+needed+" kỳ để kiểm định Ensemble tách mẫu");
+ const cut=draws.length-evaluationSize,calibration=await backtestChampionChallenger(draws.slice(0,cut),{testSize:calibrationSize,window,onProgress:(a,b)=>onProgress?.("Hiệu chỉnh",a,b)}),championWeight=adaptiveWeight(calibration.delta),champion=emptyComparison(),challenger=emptyComparison(),ensemble=emptyComparison();
+ for(let i=cut;i<draws.length;i++){const history=draws.slice(0,i),actual=draws[i];addComparison(champion,predictOtherPrizes(history,{window}),actual);addComparison(challenger,predictOtherPrizesChallenger(history,{window}),actual);addComparison(ensemble,predictOtherPrizesEnsemble(history,{window,championWeight}),actual);onProgress?.("Chấm mẫu mới",i-cut+1,evaluationSize);if((i-cut)%2===1)await wait()}
+ const c=finishComparison(champion),h=finishComparison(challenger),e=finishComparison(ensemble),delta={exactRate:e.exactRate-c.exactRate,tail2Rate:e.tail2Rate-c.tail2Rate,positionAccuracy:e.positionAccuracy-c.positionAccuracy},passes=delta.exactRate>=0&&delta.tail2Rate>=0&&delta.positionAccuracy>0;
+ return{calibrationSize,evaluationSize,championWeight,challengerWeight:1-championWeight,champion:c,challenger:h,ensemble:e,delta,decision:passes?"Ensemble vượt Champion":"Ensemble chưa vượt Champion"};
 }
