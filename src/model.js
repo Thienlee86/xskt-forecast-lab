@@ -1,0 +1,9 @@
+export const MODEL_VERSION="ensemble-v1.0.0";
+const keys=()=>Array.from({length:100},(_,i)=>String(i).padStart(2,"0"));
+function normalize(v){const s=Object.values(v).reduce((a,b)=>a+b,0)||1;return Object.fromEntries(Object.entries(v).map(([k,x])=>[k,x/s]))}
+export function frequencyBaseline(draws,window=50){const sample=draws.slice(-Math.min(window,draws.length));const count=Object.fromEntries(keys().map(k=>[k,1]));sample.forEach(d=>count[d.tail]++);return normalize(count)}
+function recency(draws,window){const sample=draws.slice(-Math.min(window,draws.length));const score=Object.fromEntries(keys().map(k=>[k,1]));sample.forEach((d,i)=>score[d.tail]+=Math.exp((i-sample.length+1)/15));return normalize(score)}
+function transition(draws){const count=Object.fromEntries(keys().map(k=>[k,1]));const last=draws.at(-1)?.tail;for(let i=1;i<draws.length;i++)if(draws[i-1].tail===last)count[draws[i].tail]++;return normalize(count)}
+function digitModel(draws,window){const sample=draws.slice(-Math.min(window,draws.length));const h=Array(10).fill(1),t=Array(10).fill(1);sample.forEach(d=>{h[+d.tail[0]]++;t[+d.tail[1]]++});const hs=h.reduce((a,b)=>a+b),ts=t.reduce((a,b)=>a+b);return Object.fromEntries(keys().map(k=>[k,h[+k[0]]/hs*t[+k[1]]/ts]))}
+export function predict(draws,{window=50}={}){if(draws.length<10)throw new Error("Cần ít nhất 10 kỳ");const f=frequencyBaseline(draws,window),r=recency(draws,window),tr=transition(draws),dg=digitModel(draws,window);const raw={};keys().forEach(k=>raw[k]=.30*f[k]+.30*r[k]+.15*tr[k]+.25*dg[k]);const probabilities=normalize(raw);const ranking=Object.entries(probabilities).sort((a,b)=>b[1]-a[1]).map(([number,score],i)=>({rank:i+1,number,score}));return{version:MODEL_VERSION,window,trainingSize:draws.length,probabilities,ranking}}
+export function randomBaseline(seed=1){let x=seed>>>0;const raw={};keys().forEach(k=>{x=(1664525*x+1013904223)>>>0;raw[k]=(x+1)/4294967297});return normalize(raw)}

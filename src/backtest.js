@@ -1,0 +1,6 @@
+import{predict,frequencyBaseline,randomBaseline}from"./model.js";
+const rank=(p)=>Object.entries(p).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+function acc(){return{n:0,h1:0,h5:0,h10:0,mrr:0,brier:0}}
+function add(a,p,y){const r=rank(p),i=r.indexOf(y);a.n++;a.h1+=i<1;a.h5+=i<5;a.h10+=i<10;a.mrr+=i<0?0:1/(i+1);a.brier+=Object.entries(p).reduce((s,[k,v])=>s+(v-(k===y?1:0))**2,0)}
+function done(a){return{tested:a.n,hit1:a.h1/a.n,hit5:a.h5/a.n,hit10:a.h10/a.n,mrr:a.mrr/a.n,brier:a.brier/a.n}}
+export async function backtest(draws,{testSize=50,window=50,onProgress}={}){const start=Math.max(20,draws.length-testSize),models={ensemble:acc(),frequency:acc(),random:acc()};for(let i=start;i<draws.length;i++){const train=draws.slice(0,i),y=draws[i].tail;add(models.ensemble,predict(train,{window}).probabilities,y);add(models.frequency,frequencyBaseline(train,window),y);add(models.random,randomBaseline(i+1),y);if(i%10===0){onProgress?.(i-start,draws.length-start);await new Promise(r=>setTimeout(r,0))}}return Object.fromEntries(Object.entries(models).map(([k,v])=>[k,done(v)]))}

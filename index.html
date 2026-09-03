@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827"><title>XSKT Forecast Lab</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"></head>
+<body><header><div><small>PHÒNG THÍ NGHIỆM DỮ LIỆU</small><h1>XSKT Forecast Lab</h1></div><span id="dataState" class="pill">Đang nạp…</span></header>
+<main>
+<section class="controls card"><label>Tỉnh<select id="province"></select></label><label>Cửa sổ<select id="window"><option>30</option><option selected>50</option><option>100</option><option value="9999">Tất cả</option></select></label></section>
+<nav><button class="active" data-tab="forecast">Dự báo</button><button data-tab="backtest">Kiểm định</button><button data-tab="saved">Đã lưu</button><button data-tab="about">Phương pháp</button></nav>
+<section id="forecast" class="tab active"><div class="card"><h2>Xếp hạng kỳ kế tiếp</h2><p class="muted">Điểm ensemble chỉ dùng dữ liệu quá khứ. Đây không phải xác suất trúng đã hiệu chỉnh.</p><button id="runForecast" class="primary">Chạy dự báo</button><div id="forecastMeta"></div><div id="ranking" class="numbers"></div><button id="saveForecast" class="secondary" disabled>Lưu dự báo bất biến</button></div></section>
+<section id="backtest" class="tab"><div class="card"><h2>Walk-forward backtest</h2><label>Số kỳ kiểm định<input id="testSize" type="number" min="20" max="200" value="50"></label><button id="runBacktest" class="primary">Chạy kiểm định</button><p id="backtestStatus" class="muted"></p><div id="metrics"></div></div></section>
+<section id="saved" class="tab"><div class="card"><h2>Dự báo đã lưu</h2><p class="muted">Bản ghi lưu model version, thời điểm và dữ liệu đầu vào để đối chiếu sau kỳ quay.</p><div id="savedList"></div></div></section>
+<section id="about" class="tab"><div class="card"><h2>Nguyên tắc khoa học</h2><ol><li>Không nhìn dữ liệu tương lai.</li><li>So với baseline tần suất và ngẫu nhiên.</li><li>Đánh giá Hit@K, MRR và Brier score.</li><li>Không nâng mô hình nếu cải thiện thiếu ổn định hoặc cỡ mẫu nhỏ.</li></ol><div class="warning">Xổ số mang tính ngẫu nhiên. Kết quả quá khứ không đảm bảo kết quả tương lai. Chỉ sử dụng cho mục đích nghiên cứu thống kê và chơi có trách nhiệm.</div></div></section>
+</main><footer>Nguồn dữ liệu tham khảo: du-bao-xsmn · Model v1.0.0</footer>
+<script type="module" src="src/app.js"></script></body></html>

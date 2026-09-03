@@ -1,0 +1,6 @@
+export const SOURCE_URL="https://raw.githubusercontent.com/Thienlee86/du-bao-xsmn/main/data/xsmn_seed.json";
+export async function loadData(){const r=await fetch(SOURCE_URL,{cache:"no-store"});if(!r.ok)throw new Error("Không tải được dữ liệu nguồn");return normalize(await r.json())}
+export function normalize(raw){if(!Array.isArray(raw.draws))throw new Error("JSON thiếu mảng draws");const seen=new Set();const draws=raw.draws.map(d=>{const db=String(d?.prizes?.db??"").padStart(6,"0");const province=String(d.province??"");const date=String(d.date??"");if(!province||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^\d{6}$/.test(db))return null;const key=province+"|"+date;if(seen.has(key))return null;seen.add(key);return{province,date,db,tail:db.slice(-2)}}).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date));if(draws.length<100)throw new Error("Dữ liệu hợp lệ quá ít");return{draws,generatedAt:raw.generatedAt??null}}
+export function provinces(data){return[...new Set(data.draws.map(d=>d.province))].sort()}
+export function provinceDraws(data,id){return data.draws.filter(d=>d.province===id)}
+export function nextScheduledDate(draws){const last=draws.at(-1)?.date;if(!last)return null;const d=new Date(last+"T00:00:00Z");d.setUTCDate(d.getUTCDate()+7);return d.toISOString().slice(0,10)}
