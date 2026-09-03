@@ -1,4 +1,5 @@
 export const PRIZE_MODEL_VERSION="representative-prizes-v1.0.0";
+export const CHALLENGER_MODEL_VERSION="representative-prizes-recency-v1.0.0";
 export const PRIZE_TIERS=[
  {key:"g8",label:"Giải 8",digits:2},{key:"g7",label:"Giải 7",digits:3},
  {key:"g6",label:"Giải 6",digits:4},{key:"g5",label:"Giải 5",digits:4},
@@ -6,13 +7,13 @@ export const PRIZE_TIERS=[
  {key:"g2",label:"Giải 2",digits:5},{key:"g1",label:"Giải 1",digits:5}
 ];
 const topDigits=(counts,k)=>counts.map((v,d)=>({d:String(d),v})).sort((a,b)=>b.v-a.v||a.d.localeCompare(b.d)).slice(0,k).map(x=>x.d);
-function buildTier(draws,tier){
- const samples=draws.flatMap(d=>Array.isArray(d.prizes?.[tier.key])?d.prizes[tier.key]:[]).filter(x=>/^\d+$/.test(x)&&x.length===tier.digits);
+function buildTier(draws,tier,{halfLife=Infinity}={}){
+ const samples=draws.flatMap((d,drawIndex)=>(Array.isArray(d.prizes?.[tier.key])?d.prizes[tier.key]:[]).map(value=>({value,weight:Number.isFinite(halfLife)?Math.pow(.5,(draws.length-1-drawIndex)/halfLife):1}))).filter(x=>/^\d+$/.test(x.value)&&x.value.length===tier.digits);
  if(!samples.length)throw new Error("Không đủ dữ liệu cho "+tier.label);
  const pos=Array.from({length:tier.digits},()=>Array(10).fill(1));
  const pairs=Array.from({length:tier.digits-1},()=>Array(100).fill(1));
  const sums=Array(9*tier.digits+1).fill(1);
- for(const s of samples){let sum=0;for(let i=0;i<tier.digits;i++){const d=+s[i];pos[i][d]++;sum+=d;if(i<tier.digits-1)pairs[i][+(s[i]+s[i+1])]++}sums[sum]++}
+ for(const sample of samples){const s=sample.value,w=sample.weight;let sum=0;for(let i=0;i<tier.digits;i++){const d=+s[i];pos[i][d]+=w;sum+=d;if(i<tier.digits-1)pairs[i][+(s[i]+s[i+1])]+=w}sums[sum]+=w}
  const k=tier.digits<=3?8:tier.digits===4?6:5, choices=pos.map(x=>topDigits(x,k)), candidates=[];
  function walk(i,s){if(i===tier.digits){candidates.push(s);return}for(const d of choices[i])walk(i+1,s+d)}
  walk(0,"");
@@ -25,4 +26,9 @@ export function predictOtherPrizes(draws,{window=50}={}){
  if(!Array.isArray(draws)||draws.length<10)throw new Error("Cần ít nhất 10 kỳ để dự báo các giải");
  const selected=draws.slice(-Math.min(+window||50,draws.length));
  return{version:PRIZE_MODEL_VERSION,window,trainingSize:selected.length,tiers:PRIZE_TIERS.map(t=>buildTier(selected,t))};
+}
+export function predictOtherPrizesChallenger(draws,{window=50,halfLife=18}={}){
+ if(!Array.isArray(draws)||draws.length<10)throw new Error("Cần ít nhất 10 kỳ để chạy mô hình thử nghiệm");
+ const selected=draws.slice(-Math.min(+window||50,draws.length));
+ return{version:CHALLENGER_MODEL_VERSION,window,halfLife,trainingSize:selected.length,tiers:PRIZE_TIERS.map(t=>buildTier(selected,t,{halfLife}))};
 }
