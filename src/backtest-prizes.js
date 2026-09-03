@@ -25,3 +25,12 @@ export async function backtestChampionChallenger(draws,{testSize=50,window=50,on
  const promote=trials>=50&&delta.exactRate>=0&&delta.tail2Rate>=.01&&delta.positionAccuracy>=.01;
  return{requestedTrials,trials,minimumTraining,champion:c,challenger:h,delta,promote,decision:promote?"Đề xuất Challenger":"Giữ Champion"};
 }
+
+export async function backtestDrift(draws,{recentSize=20,referenceSize=30,window=50,onProgress}={}){
+ const needed=10+recentSize+referenceSize;if(!Array.isArray(draws)||draws.length<needed)throw new Error("Cần ít nhất "+needed+" kỳ để theo dõi suy giảm");
+ const total=recentSize+referenceSize,start=draws.length-total,split=draws.length-recentSize,reference=emptyComparison(),recent=emptyComparison();
+ for(let i=start;i<draws.length;i++){const result=predictOtherPrizes(draws.slice(0,i),{window}),target=i<split?reference:recent;addComparison(target,result,draws[i]);onProgress?.(i-start+1,total);if((i-start)%2===1)await wait()}
+ const old=finishComparison(reference),now=finishComparison(recent),delta={exactRate:now.exactRate-old.exactRate,tail2Rate:now.tail2Rate-old.tail2Rate,positionAccuracy:now.positionAccuracy-old.positionAccuracy};
+ const tailDrop=delta.tail2Rate<=-.015,positionDrop=delta.positionAccuracy<=-.01,status=tailDrop&&positionDrop?"Cảnh báo suy giảm":tailDrop||positionDrop?"Cần theo dõi":"Ổn định";
+ return{referenceSize,recentSize,reference:old,recent:now,delta,status};
+}
