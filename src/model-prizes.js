@@ -32,3 +32,9 @@ export function predictOtherPrizesChallenger(draws,{window=50,halfLife=18}={}){
  const selected=draws.slice(-Math.min(+window||50,draws.length));
  return{version:CHALLENGER_MODEL_VERSION,window,halfLife,trainingSize:selected.length,tiers:PRIZE_TIERS.map(t=>buildTier(selected,t,{halfLife}))};
 }
+
+export function predictOtherPrizesEnsemble(draws,{window=50,championWeight=.5}={}){
+ const champion=predictOtherPrizes(draws,{window}),challenger=predictOtherPrizesChallenger(draws,{window}),cw=Math.max(.2,Math.min(.8,championWeight)),hw=1-cw;
+ const tiers=champion.tiers.map((c,i)=>{const h=challenger.tiers[i],scores=new Map();c.alternatives.forEach((x,rank)=>scores.set(x.number,(scores.get(x.number)||0)+cw/(rank+1)));h.alternatives.forEach((x,rank)=>scores.set(x.number,(scores.get(x.number)||0)+hw/(rank+1)));const ranked=[...scores].map(([number,score])=>({number,score,sum:[...number].reduce((a,d)=>a+ +d,0)})).sort((a,b)=>b.score-a.score||a.number.localeCompare(b.number)),den=ranked.slice(0,10).reduce((a,x)=>a+x.score,0),best=ranked[0],consensus=c.representative===h.representative?"Cao":c.representative.slice(-2)===h.representative.slice(-2)?"Vừa":"Thấp";return{...c,representative:best.number,sum:best.sum,relativeWeight:best.score/den,alternatives:ranked.slice(0,10).map(x=>({...x,relativeWeight:x.score/den})),consensus,championPick:c.representative,challengerPick:h.representative}});
+ return{version:"adaptive-ensemble-v1.0.0",window,trainingSize:champion.trainingSize,championWeight:cw,challengerWeight:hw,mixLabel:"Champion "+Math.round(cw*100)+"% · Challenger "+Math.round(hw*100)+"%",tiers};
+}
