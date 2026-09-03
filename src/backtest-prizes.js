@@ -1,4 +1,4 @@
-import{predictOtherPrizes,predictOtherPrizesChallenger,PRIZE_TIERS}from"./model-prizes.js?v=2";
+import{predictOtherPrizes,predictOtherPrizesChallenger,PRIZE_TIERS}from"./model-prizes.js?v=3";
 const wait=()=>new Promise(r=>setTimeout(r,0));
 function bestPosition(number,actual){let best=0;for(const a of actual){let hit=0;for(let i=0;i<number.length;i++)if(number[i]===a[i])hit++;best=Math.max(best,hit)}return best}
 function choose(n,k){let v=1;for(let i=1;i<=k;i++)v=v*(n-k+i)/i;return v}
