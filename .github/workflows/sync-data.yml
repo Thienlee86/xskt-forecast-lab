@@ -1,0 +1,41 @@
+name: Sync verified XSMN history
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 20:00 Việt Nam, sau quy trình cập nhật của kho nguồn
+    - cron: "0 13 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-verified-xskt-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Download and validate candidate history
+        run: node scripts/sync-data.js
+      - name: Commit verified data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/xsmn_seed.json data/update-status.json
+          if git diff --cached --quiet; then
+            echo "No verified data changes."
+            exit 0
+          fi
+          git commit -m "data: sync verified XSMN history"
+          git pull --rebase origin main
+          git push origin HEAD:main
