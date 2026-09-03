@@ -1,4 +1,4 @@
-const CACHE="xskt-lab-v25-auto-data";const ASSETS=["./","./index.html","./styles.css?v=12","./src/app.js?v=22","./src/data.js","./data/xsmn_seed.json?v=20260902","./src/model.js","./src/model6.js","./src/model-prizes.js?v=3","./src/backtest.js","./src/backtest6.js","./src/backtest-prizes.js?v=5","./src/storage.js?v=2"];
+const CACHE="xskt-lab-v26-early-sync";const ASSETS=["./","./index.html","./styles.css?v=12","./src/app.js?v=23","./src/data.js","./data/xsmn_seed.json?v=20260902","./src/model.js","./src/model6.js","./src/model-prizes.js?v=3","./src/backtest.js","./src/backtest6.js","./src/backtest-prizes.js?v=5","./src/storage.js?v=2"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",e=>e.respondWith(fetch(e.request).then(r=>{const x=r.clone();caches.open(CACHE).then(c=>c.put(e.request,x));return r}).catch(()=>caches.match(e.request))));
