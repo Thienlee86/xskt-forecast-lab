@@ -5,7 +5,8 @@
  th,td{padding:9px 8px}
  table th:first-child,table td:first-child{position:sticky;left:0;z-index:1;min-width:108px;background:#fff;box-shadow:5px 0 8px #33415512}
  table th:first-child{z-index:2;background:#faf5ff}
- #metricsChampion th:first-child,#metricsChampion td:first-child{min-width:158px;white-space:normal}
+ #metricsChampion th:first-child,#metricsChampion td:first-child,#metricsEnsemble th:first-child,#metricsEnsemble td:first-child{min-width:158px;max-width:158px;white-space:normal;overflow-wrap:anywhere}
+ #metricsEnsemble th:nth-child(n+2),#metricsEnsemble td:nth-child(n+2){min-width:112px}
  #metricsStability th:last-child,#metricsStability td:last-child{min-width:145px;white-space:normal;text-align:left}
  .table-hint{display:block;margin:6px 0;color:#64748b;font-size:12px}
 }
