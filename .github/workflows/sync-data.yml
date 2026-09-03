@@ -3,8 +3,8 @@ name: Sync verified XSMN history
 on:
   workflow_dispatch:
   schedule:
-    # 18:15 Việt Nam, sau quy trình cập nhật của kho nguồn
-    - cron: "15 11 * * *"
+    # 19:00 Việt Nam, sau quy trình cập nhật 18:30 của kho nguồn
+    - cron: "0 12 * * *"
 
 permissions:
   contents: write
