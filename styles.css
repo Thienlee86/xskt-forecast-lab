@@ -14,3 +14,15 @@
 .import-button{display:flex;align-items:center;justify-content:center;border:0;border-radius:13px;padding:12px;color:#fff;background:linear-gradient(120deg,#0891b2,#10b981);font-weight:800;box-shadow:0 3px 9px #6366f119;cursor:pointer;text-align:center}
 .import-button input{display:none}
 .button-row .import-button{flex:1}
+
+.draw-schedule{padding:14px 17px}
+.schedule-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.schedule-head>div{display:grid;gap:2px}.schedule-head small{color:#64748b;letter-spacing:0;font-weight:650}
+.schedule-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.schedule-grid article{padding:10px;border:1px solid #e2e8f0;border-radius:13px;background:#f8fafc}
+.schedule-grid article>b{color:#4338ca}.schedule-grid article>div{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.schedule-grid span{padding:3px 7px;border-radius:99px;background:#eef2ff;color:#475569;font-size:12px}
+.schedule-grid article.today{border-color:#22c55e;background:#f0fdf4;box-shadow:0 0 0 2px #bbf7d0 inset}
+.schedule-grid article.selected{border-color:#a855f7}.schedule-grid span.chosen{color:#fff;background:linear-gradient(120deg,#7c3aed,#ec4899);font-weight:800}
+.draw-schedule>p{font-size:12px;margin:9px 0 0}
+@media(max-width:520px){.schedule-head{align-items:flex-start}.schedule-head .signal{white-space:nowrap}.schedule-grid{grid-template-columns:1fr}}
