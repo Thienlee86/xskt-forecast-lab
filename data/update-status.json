@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-10-31T16:05:22.551Z",
+  "checkedAt": "2026-10-31T17:21:26.520Z",
   "source": "https://raw.githubusercontent.com/Thienlee86/du-bao-xsmn/main/data/xsmn_seed.json",
-  "status": "updated",
-  "added": 4,
+  "status": "current",
+  "added": 0,
   "total": 2100,
   "provinces": 21,
   "latestDate": "2026-10-31"
